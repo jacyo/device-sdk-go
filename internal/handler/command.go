@@ -113,7 +113,7 @@ func execReadDeviceResource(device *contract.Device, dr *contract.DeviceResource
 	req.Type = dsModels.ParseValueType(dr.Properties.Value.Type)
 	reqs = append(reqs, req)
 
-	results, err := common.Driver.HandleReadCommands(device.Name, device.Protocols, reqs)
+	results, err := common.Driver.HandleReadCommands(device.Name, device.Protocols, "", reqs)
 	if err != nil {
 		msg := fmt.Sprintf("Handler - execReadCmd: error for Device: %s DeviceResource: %s, %v", device.Name, dr.Name, err)
 		return nil, common.NewServerError(msg, err)
@@ -244,7 +244,7 @@ func execReadCmd(device *contract.Device, cmd string, queryParams string) (*dsMo
 		reqs[i].Type = dsModels.ParseValueType(dr.Properties.Value.Type)
 	}
 
-	results, err := common.Driver.HandleReadCommands(device.Name, device.Protocols, reqs)
+	results, err := common.Driver.HandleReadCommands(device.Name, device.Protocols, cmd, reqs)
 	if err != nil {
 		msg := fmt.Sprintf("Handler - execReadCmd: error for Device: %s cmd: %s, %v", device.Name, cmd, err)
 		return nil, common.NewServerError(msg, err)
@@ -292,7 +292,7 @@ func execWriteDeviceResource(device *contract.Device, dr *contract.DeviceResourc
 		}
 	}
 
-	err = common.Driver.HandleWriteCommands(device.Name, device.Protocols, reqs, []*dsModels.CommandValue{cv})
+	err = common.Driver.HandleWriteCommands(device.Name, device.Protocols,"", reqs, []*dsModels.CommandValue{cv})
 	if err != nil {
 		msg := fmt.Sprintf("Handler - execWriteDeviceResource: error for Device: %s Device Resource: %s, %v", device.Name, dr.Name, err)
 		return common.NewServerError(msg, err)
@@ -354,7 +354,7 @@ func execWriteCmd(device *contract.Device, cmd string, params string) common.App
 		}
 	}
 
-	err = common.Driver.HandleWriteCommands(device.Name, device.Protocols, reqs, cvs)
+	err = common.Driver.HandleWriteCommands(device.Name, device.Protocols, cmd, reqs, cvs)
 	if err != nil {
 		msg := fmt.Sprintf("Handler - execWriteCmd: error for Device: %s cmd: %s, %v", device.Name, cmd, err)
 		return common.NewServerError(msg, err)

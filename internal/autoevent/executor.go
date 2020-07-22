@@ -28,6 +28,7 @@ type executor struct {
 	deviceName   string
 	autoEvent    contract.AutoEvent
 	lastReadings map[string]interface{}
+	startTime    time.Time
 	duration     time.Duration
 	stop         bool
 	rwmutex      sync.RWMutex
@@ -37,6 +38,21 @@ type executor struct {
 func (e *executor) Run(ctx context.Context, wg *sync.WaitGroup) {
 	wg.Add(1)
 	defer wg.Done()
+
+	t := time.Now()
+	if t.After(e.startTime) {
+		common.LoggingClient.Error(fmt.Sprintf("AutoEvent - startTime is expired %v", e.startTime))
+		return
+	}
+
+	d := time.Until(e.startTime)
+	select {
+	case <-ctx.Done():
+		return
+	case <-time.After(d):
+		break
+	}
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -128,6 +144,13 @@ func (e *executor) Stop() {
 
 // NewExecutor creates an Executor for an AutoEvent
 func NewExecutor(deviceName string, ae contract.AutoEvent) (Executor, error) {
+	loc, _ := time.LoadLocation("Asia/Shanghai")
+	startTime, err := time.ParseInLocation("2006-01-02 15:04:05", ae.StartTime, loc)
+	if err != nil {
+		common.LoggingClient.Error(fmt.Sprintf("AutoEvent StartTime %s cannot be parsed error, %v", ae.StartTime, err))
+		return nil, err
+	}
+
 	// check Frequency
 	duration, err := time.ParseDuration(ae.Frequency)
 	if err != nil {
@@ -136,5 +159,5 @@ func NewExecutor(deviceName string, ae contract.AutoEvent) (Executor, error) {
 	}
 
 	return &executor{deviceName: deviceName, autoEvent: ae,
-		lastReadings: make(map[string]interface{}), duration: duration, stop: false}, nil
+		lastReadings: make(map[string]interface{}), startTime: startTime, duration: duration, stop: false}, nil
 }

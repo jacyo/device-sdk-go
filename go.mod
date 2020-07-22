@@ -13,4 +13,6 @@ require (
 	gopkg.in/yaml.v2 v2.2.8
 )
 
+replace github.com/edgexfoundry/go-mod-core-contracts v0.1.58 => github.com/jacyo/go-mod-core-contracts v0.1.62-0.20200702082745-a8fcd896cfcd
+
 go 1.13
